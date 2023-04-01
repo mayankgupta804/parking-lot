@@ -1,16 +1,18 @@
 package main
 
 import (
+	"parking-lot/internal/usecases/parking"
+
 	"fmt"
 	"log"
-	"parking-lot/internal/domain"
-	"parking-lot/usecases"
 	"time"
 )
 
 func main() {
-	mallParkingService := usecases.NewMallParkingService(usecases.WithSpots(domain.BusOrTruck, 10))
-	ticket, err := mallParkingService.GetParkingTicket(domain.BusOrTruck, time.Now())
+	mallParkingService := parking.NewService(
+		parking.WithSpots(parking.BusOrTruck, 10),
+		parking.WithFeeModel(parking.Mall()))
+	ticket, err := mallParkingService.GetTicket(parking.BusOrTruck, time.Now())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -19,9 +21,10 @@ func main() {
 	log.Println(ticket.EntryDateTime)
 	log.Println(ticket.VehicleType)
 
-	receipt, err := mallParkingService.GenerateParkingReceipt(ticket.Number)
+	receipt, err := mallParkingService.GenerateReceipt(ticket.Number)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println(receipt)
+
 }
