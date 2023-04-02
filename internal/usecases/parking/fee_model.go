@@ -72,7 +72,7 @@ func (feeModel stadiumFeeModel) GetParkingFee(vehicleType domain.VehicleType, en
 		intervalStart := interval.start
 		intervalEnd := interval.end
 
-		if intervalEnd < 0 && duration > 0 {
+		if intervalEnd == hourUnknown && duration > 0 {
 			for i := intervalStart; i < duration; i++ {
 				totalFee += fee
 				durationLeft -= 1
@@ -146,7 +146,7 @@ func (feeModel airportFeeModel) GetParkingFee(vehicleType domain.VehicleType, en
 		intervalStart := interval.start
 		intervalEnd := interval.end
 
-		if intervalEnd < 0 && durationInDays > 0 {
+		if intervalEnd == hourUnknown && durationInDays > 0 {
 			totalFee = 0
 			if durationLeft > 0 {
 				durationInDays += 1
@@ -160,7 +160,6 @@ func (feeModel airportFeeModel) GetParkingFee(vehicleType domain.VehicleType, en
 		if durationLeft >= intervalStart && totalFee < fee {
 			totalFee = fee
 		}
-
 	}
 	return totalFee
 }
