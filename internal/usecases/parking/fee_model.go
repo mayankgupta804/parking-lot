@@ -33,6 +33,8 @@ func Stadium() stadiumFeeModel {
 	feeModel.motorcyleToIntervals = make(map[domain.VehicleType]map[interval]float64)
 	feeModel.carOrSuvToIntervals = make(map[domain.VehicleType]map[interval]float64)
 
+	feeModel.vehicleTypeToIntervalFeeContainer = make(map[domain.VehicleType]map[domain.VehicleType]map[interval]float64)
+
 	feeModel.vehicleTypeToIntervalFeeContainer[domain.Motorcycle] = feeModel.motorcyleToIntervals
 	feeModel.vehicleTypeToIntervalFeeContainer[domain.CarOrSuv] = feeModel.carOrSuvToIntervals
 
@@ -42,12 +44,12 @@ func Stadium() stadiumFeeModel {
 	i1 := interval{start: 0, end: 4}
 	i2 := interval{start: 4, end: 12}
 	i3 := interval{start: 12, end: hourUnknown}
-	feeModel.motorcyleToIntervals[domain.Motorcycle] = map[interval]float64{i1: 30.0, i2: 60, i3: 100}
+	feeModel.motorcyleToIntervals[domain.Motorcycle] = map[interval]float64{i1: 30, i2: 60, i3: 100}
 
 	i1 = interval{start: 0, end: 4}
 	i2 = interval{start: 4, end: 12}
 	i3 = interval{start: 12, end: hourUnknown}
-	feeModel.carOrSuvToIntervals[domain.CarOrSuv] = map[interval]float64{i1: 60.0, i2: 120, i3: 200}
+	feeModel.carOrSuvToIntervals[domain.CarOrSuv] = map[interval]float64{i1: 60, i2: 120, i3: 200}
 
 	return feeModel
 }
@@ -70,7 +72,7 @@ func (feeModel stadiumFeeModel) GetParkingFee(vehicleType domain.VehicleType, en
 		intervalStart := interval.start
 		intervalEnd := interval.end
 
-		if intervalEnd < 0 && duration >= 0 {
+		if intervalEnd < 0 && duration > 0 {
 			for i := intervalStart; i < duration; i++ {
 				totalFee += fee
 				durationLeft -= 1
@@ -78,8 +80,9 @@ func (feeModel stadiumFeeModel) GetParkingFee(vehicleType domain.VehicleType, en
 			continue
 		}
 
-		if durationLeft >= intervalStart || durationLeft < intervalEnd {
+		if durationLeft >= intervalStart {
 			totalFee += fee
+			durationLeft -= 1
 		}
 
 	}
