@@ -98,11 +98,10 @@ func (ps *parkingService) GetTicket(vehicleType VehicleType, entryDateTime time.
 }
 
 func (ps *parkingService) GenerateReceipt(ticketNumber int) (Receipt, error) {
-	receipt := Receipt{}
 	spotNumber := ps.ticketNumberToSpotNumber[ticketNumber]
 
 	if err := ps.Unpark(spotNumber); err != nil {
-		return receipt, err
+		return Receipt{}, err
 	}
 
 	ticket := ps.ticketNumberToTicket[ticketNumber]
@@ -111,11 +110,15 @@ func (ps *parkingService) GenerateReceipt(ticketNumber int) (Receipt, error) {
 	exitDateTime := time.Now()
 
 	fee := ps.GetParkingFee(ticket.VehicleType, entryDateTime, exitDateTime)
-	receipt.EntryDateTime = entryDateTime
-	receipt.ExitDateTime = exitDateTime
-	receipt.Fee = fee
-	receipt.Number = ps.currentReceiptNumber + 1
+
 	ps.currentReceiptNumber += 1
+
+	receipt := Receipt{
+		EntryDateTime: entryDateTime,
+		ExitDateTime:  exitDateTime,
+		Fee:           fee,
+		Number:        ps.currentReceiptNumber,
+	}
 
 	return receipt, nil
 }
