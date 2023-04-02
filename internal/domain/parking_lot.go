@@ -37,7 +37,7 @@ func (parkingLotErr ParkingLotError) Unwrap() error {
 var (
 	ErrParkingLotFull            = errors.New("parking lot is full")
 	ErrVehicleAlreadyParked      = errors.New("vehicle is already parked")
-	ErrVehicleInSlotDoesNotExist = errors.New("vehicle is not in slot")
+	ErrVehicleInSlotDoesNotExist = errors.New("vehicle is not in spot")
 )
 
 func (parkingLot *parkingLot) Park(vehicleType VehicleType) (spotNumber int, err error) {

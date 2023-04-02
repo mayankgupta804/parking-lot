@@ -99,6 +99,8 @@ func Airport() airportFeeModel {
 	feeModel.motorcyleToIntervals = make(map[domain.VehicleType]map[interval]float64)
 	feeModel.carOrSuvToIntervals = make(map[domain.VehicleType]map[interval]float64)
 
+	feeModel.vehicleTypeToIntervalFeeContainer = make(map[domain.VehicleType]map[domain.VehicleType]map[interval]float64)
+
 	feeModel.vehicleTypeToIntervalFeeContainer[domain.Motorcycle] = feeModel.motorcyleToIntervals
 	feeModel.vehicleTypeToIntervalFeeContainer[domain.CarOrSuv] = feeModel.carOrSuvToIntervals
 
@@ -109,7 +111,7 @@ func Airport() airportFeeModel {
 	i2 := interval{start: 1, end: 8}
 	i3 := interval{start: 8, end: 24}
 	i4 := interval{start: 24, end: hourUnknown}
-	feeModel.motorcyleToIntervals[domain.Motorcycle] = map[interval]float64{i1: 30, i2: 60, i3: 100, i4: 80}
+	feeModel.motorcyleToIntervals[domain.Motorcycle] = map[interval]float64{i1: 0, i2: 40, i3: 60, i4: 80}
 
 	i1 = interval{start: 0, end: 12}
 	i2 = interval{start: 12, end: 24}
@@ -119,7 +121,6 @@ func Airport() airportFeeModel {
 	return feeModel
 }
 
-// TODO: Not yet implemented
 func (feeModel airportFeeModel) GetParkingFee(vehicleType domain.VehicleType, entryTime, exitTime time.Time) float64 {
 	vehicleTypeToIntervalFee, ok := feeModel.vehicleTypeToIntervalFeeContainer[vehicleType]
 	if !ok {
@@ -129,25 +130,35 @@ func (feeModel airportFeeModel) GetParkingFee(vehicleType domain.VehicleType, en
 	if !ok {
 		return 0.0
 	}
-	duration := int(exitTime.Sub(entryTime).Hours())
+
+	duration := exitTime.Sub(entryTime).Hours()
+	durationLeftInHours := int(duration)
+	durationInDays := int(duration / 24.0)
+
+	if durationInDays > 0 {
+		durationLeftInHours = int(duration - (float64(durationInDays) * 24.0))
+	}
 
 	var totalFee float64
-	durationLeft := duration
+	durationLeft := durationLeftInHours
 
 	for interval, fee := range intervalFee {
 		intervalStart := interval.start
 		intervalEnd := interval.end
 
-		if intervalEnd < 0 && duration >= 0 {
-			for i := intervalStart; i < duration; i++ {
-				totalFee += fee
-				durationLeft -= 1
+		if intervalEnd < 0 && durationInDays > 0 {
+			totalFee = 0
+			if durationLeft > 0 {
+				durationInDays += 1
 			}
-			continue
+			for i := (intervalStart / 24); i <= durationInDays; i++ {
+				totalFee += fee
+			}
+			break
 		}
 
-		if durationLeft >= intervalStart || durationLeft < intervalEnd {
-			totalFee += fee
+		if durationLeft >= intervalStart && totalFee < fee {
+			totalFee = fee
 		}
 
 	}
