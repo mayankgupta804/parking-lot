@@ -26,3 +26,43 @@ func TestMallFeeModel_GetParkingFee_CarOrSuv_60_minutes(t *testing.T) {
 		t.Errorf("Expected: %v. Got: %v", expected, got)
 	}
 }
+
+func TestStadiumFeeModel_GetParkingFee_Motorcycle_3_hours_59_minutes_59_seconds(t *testing.T) {
+	stadiumFeeModel := parking.Stadium()
+	got := stadiumFeeModel.GetParkingFee(domain.Motorcycle, time.Now().Add(-59*time.Minute-59*time.Second), time.Now())
+	expected := 30.0
+
+	if got != expected {
+		t.Errorf("Expected: %v. Got: %v", expected, got)
+	}
+}
+
+func TestStadiumFeeModel_GetParkingFee_CarOrSuv_11_hours_59_minutes_59_seconds(t *testing.T) {
+	stadiumFeeModel := parking.Stadium()
+	got := stadiumFeeModel.GetParkingFee(domain.CarOrSuv, time.Now().Add(-11*time.Hour-59*time.Minute-59*time.Second), time.Now())
+	expected := 180.0
+
+	if got != expected {
+		t.Errorf("Expected: %v. Got: %v", expected, got)
+	}
+}
+
+func TestStadiumFeeModel_GetParkingFee_Motorcycle_12_hours_59_minutes_59_seconds(t *testing.T) {
+	stadiumFeeModel := parking.Stadium()
+	got := stadiumFeeModel.GetParkingFee(domain.Motorcycle, time.Now().Add(-12*time.Hour-59*time.Minute-59*time.Second), time.Now())
+	expected := 190.0
+
+	if got != expected {
+		t.Errorf("Expected: %v. Got: %v", expected, got)
+	}
+}
+
+func TestStadiumFeeModel_GetParkingFee_CarOrSuv_14_hours_59_minutes_59_seconds(t *testing.T) {
+	stadiumFeeModel := parking.Stadium()
+	got := stadiumFeeModel.GetParkingFee(domain.CarOrSuv, time.Now().Add(-14*time.Hour-59*time.Minute-59*time.Second), time.Now())
+	expected := 780.0
+
+	if got != expected {
+		t.Errorf("Expected: %v. Got: %v", expected, got)
+	}
+}

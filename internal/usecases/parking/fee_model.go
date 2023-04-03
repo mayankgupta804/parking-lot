@@ -1,8 +1,9 @@
 package parking
 
 import (
-	"math"
 	"parking-lot/internal/domain"
+
+	"math"
 	"time"
 )
 
@@ -28,7 +29,7 @@ type stadiumFeeModel struct {
 	intervalBasedFeeModel
 }
 
-func Stadium() stadiumFeeModel {
+func Stadium() FeeService {
 	feeModel := stadiumFeeModel{}
 
 	feeModel.motorcyleToIntervals = make(map[domain.VehicleType]map[interval]float64)
@@ -64,7 +65,7 @@ func (feeModel stadiumFeeModel) GetParkingFee(vehicleType domain.VehicleType, en
 	if !ok {
 		return 0.0
 	}
-	duration := int(exitTime.Sub(entryTime).Hours())
+	duration := int(math.Ceil(exitTime.Sub(entryTime).Hours()))
 
 	var totalFee float64
 	durationLeft := duration
