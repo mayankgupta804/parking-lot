@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+//go:generate moq -out parking_lot_mock.go . ParkingLot
 type ParkingLot interface {
 	Park(vehicleType VehicleType) (spotNumber int, err error)
 	Unpark(spotNumber int) error

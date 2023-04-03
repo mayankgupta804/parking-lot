@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+//go:generate moq -out fee_service_mock.go . FeeService
 type FeeService interface {
 	GetParkingFee(vehicleType domain.VehicleType, entryTime, exitTime time.Time) float64
 }

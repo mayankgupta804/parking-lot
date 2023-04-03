@@ -1,6 +1,8 @@
 package parking
 
 import (
+	"errors"
+	"fmt"
 	"parking-lot/internal/domain"
 
 	"time"
@@ -18,6 +20,20 @@ type Ticket struct {
 	SpotNumber    int
 	VehicleType   domain.VehicleType
 	EntryDateTime time.Time
+}
+
+type ParkingServiceErr struct {
+	Err error
+}
+
+var (
+	ErrParking        = errors.New("error encountered while parking vehicle")
+	ErrUnparking      = errors.New("error encountered while unparking vehicle")
+	ErrParkingFeeZero = errors.New("internal error. parking fee cannot be 0.0")
+)
+
+func (ps ParkingServiceErr) Error() string {
+	return ps.Err.Error()
 }
 
 type VehicleType string
@@ -61,13 +77,13 @@ func NewService(options ...func(*parkingService)) ParkingService {
 	return ps
 }
 
-func WithFeeModel(feeService FeeService) func(*parkingService) {
+func WithParkingFeeModel(feeService FeeService) func(*parkingService) {
 	return func(ps *parkingService) {
 		ps.FeeService = feeService
 	}
 }
 
-func WithSpots(vehicleType VehicleType, size int) func(*parkingService) {
+func WithParkingSpots(vehicleType VehicleType, size int) func(*parkingService) {
 	return func(ps *parkingService) {
 		if ps.ParkingLot == nil {
 			ps.ParkingLot = domain.NewParkingLot()
@@ -76,12 +92,17 @@ func WithSpots(vehicleType VehicleType, size int) func(*parkingService) {
 	}
 }
 
+func WithParkingLotImplementation(parkingLot domain.ParkingLot) func(*parkingService) {
+	return func(ps *parkingService) {
+		ps.ParkingLot = parkingLot
+	}
+}
+
 func (ps *parkingService) GetTicket(vehicleType VehicleType, entryDateTime time.Time) (Ticket, error) {
 	ticket := Ticket{}
 	spotNumber, err := ps.Park(domain.VehicleType(vehicleType))
 	if err != nil {
-		// handle domain error
-		return ticket, nil
+		return ticket, ParkingServiceErr{Err: fmt.Errorf("%v: %w", ErrParking, err)}
 	}
 	currentTicketNumber := ps.currentTicketNumber
 
@@ -101,7 +122,7 @@ func (ps *parkingService) GenerateReceipt(ticketNumber int) (Receipt, error) {
 	spotNumber := ps.ticketNumberToSpotNumber[ticketNumber]
 
 	if err := ps.Unpark(spotNumber); err != nil {
-		return Receipt{}, err
+		return Receipt{}, ParkingServiceErr{Err: fmt.Errorf("%v: %w", ErrUnparking, err)}
 	}
 
 	ticket := ps.ticketNumberToTicket[ticketNumber]
@@ -110,6 +131,9 @@ func (ps *parkingService) GenerateReceipt(ticketNumber int) (Receipt, error) {
 	exitDateTime := time.Now()
 
 	fee := ps.GetParkingFee(ticket.VehicleType, entryDateTime, exitDateTime)
+	if fee == 0.0 {
+		return Receipt{}, ParkingServiceErr{Err: ErrParkingFeeZero}
+	}
 
 	ps.currentReceiptNumber += 1
 
