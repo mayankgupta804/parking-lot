@@ -1,6 +1,7 @@
 package parking
 
 import (
+	"math"
 	"parking-lot/internal/domain"
 	"time"
 )
@@ -172,7 +173,7 @@ type mallFeeModel struct {
 	flatRateFeeModel
 }
 
-func Mall() mallFeeModel {
+func Mall() FeeService {
 	feeModel := mallFeeModel{}
 	feeModel.vehicleTypeToFee = make(map[domain.VehicleType]float64)
 	feeModel.vehicleTypeToFee[domain.Motorcycle] = 10.0
@@ -183,6 +184,6 @@ func Mall() mallFeeModel {
 
 func (feeModel mallFeeModel) GetParkingFee(vehicleType domain.VehicleType, entryTime, exitTime time.Time) float64 {
 	perHourFee := feeModel.vehicleTypeToFee[vehicleType]
-	duration := int(exitTime.Sub(entryTime).Hours())
+	duration := int(math.Ceil(exitTime.Sub(entryTime).Hours()))
 	return float64(duration) * perHourFee
 }
