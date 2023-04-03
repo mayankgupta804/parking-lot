@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+	"fmt"
 )
 
 type ParkingLot interface {
@@ -11,14 +12,14 @@ type ParkingLot interface {
 }
 
 type parkingLot struct {
-	vehicleTypeToSpot map[VehicleType][]Spot
+	vehicleTypeToSpot map[VehicleType][]*Spot
 	spotNumberToSpot  map[int]Spot
 }
 
 func NewParkingLot() ParkingLot {
 	pl := &parkingLot{}
 	pl.spotNumberToSpot = make(map[int]Spot)
-	pl.vehicleTypeToSpot = make(map[VehicleType][]Spot)
+	pl.vehicleTypeToSpot = make(map[VehicleType][]*Spot)
 	return pl
 }
 
@@ -30,25 +31,27 @@ func (parkingLotErr ParkingLotError) Error() string {
 	return parkingLotErr.Err.Error()
 }
 
-func (parkingLotErr ParkingLotError) Unwrap() error {
-	return parkingLotErr.Err
-}
-
 var (
 	ErrParkingLotFull            = errors.New("parking lot is full")
-	ErrVehicleAlreadyParked      = errors.New("vehicle is already parked")
-	ErrVehicleInSlotDoesNotExist = errors.New("vehicle is not in spot")
+	ErrVehicleInSpotDoesNotExist = errors.New("vehicle is not in spot")
+	ErrNoParkingSpotsAvailable   = func(vehicleType VehicleType) error {
+		return fmt.Errorf("no parking spots available for vehicle type: %s", vehicleType)
+	}
 )
 
 func (parkingLot *parkingLot) Park(vehicleType VehicleType) (spotNumber int, err error) {
 	spots := parkingLot.vehicleTypeToSpot[vehicleType]
+	if len(spots) == 0 {
+		err = ParkingLotError{Err: ErrNoParkingSpotsAvailable(vehicleType)}
+		return
+	}
 	var isVehicleParked bool
 	for _, spot := range spots {
 		if !spot.occupied {
 			spot.occupied = true
 			isVehicleParked = true
 			spotNumber = spot.number
-			parkingLot.spotNumberToSpot[spotNumber] = spot
+			parkingLot.spotNumberToSpot[spotNumber] = *spot
 			break
 		}
 	}
@@ -62,12 +65,13 @@ func (parkingLot *parkingLot) Park(vehicleType VehicleType) (spotNumber int, err
 func (parkingLot *parkingLot) Unpark(spotNumber int) error {
 	occupiedSpot, ok := parkingLot.spotNumberToSpot[spotNumber]
 	if !ok {
-		return ParkingLotError{Err: ErrVehicleInSlotDoesNotExist}
+		return ParkingLotError{Err: ErrVehicleInSpotDoesNotExist}
 	}
 	spots := parkingLot.vehicleTypeToSpot[occupiedSpot.typ]
 	for _, spot := range spots {
 		if spot.number == spotNumber {
 			spot.occupied = false
+			delete(parkingLot.spotNumberToSpot, spotNumber)
 			break
 		}
 	}
@@ -77,6 +81,6 @@ func (parkingLot *parkingLot) Unpark(spotNumber int) error {
 func (pl *parkingLot) AddSpots(typ VehicleType, size int) {
 	for i := 1; i <= size; i++ {
 		spot := NewSpot(i, typ)
-		pl.vehicleTypeToSpot[typ] = append(pl.vehicleTypeToSpot[typ], spot)
+		pl.vehicleTypeToSpot[typ] = append(pl.vehicleTypeToSpot[typ], &spot)
 	}
 }
