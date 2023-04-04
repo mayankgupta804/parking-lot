@@ -24,14 +24,6 @@ func NewParkingLot() ParkingLot {
 	return pl
 }
 
-type ParkingLotError struct {
-	Err error
-}
-
-func (parkingLotErr ParkingLotError) Error() string {
-	return parkingLotErr.Err.Error()
-}
-
 var (
 	ErrParkingLotFull            = errors.New("parking lot is full")
 	ErrVehicleInSpotDoesNotExist = errors.New("vehicle is not in spot")
@@ -43,7 +35,7 @@ var (
 func (parkingLot *parkingLot) Park(vehicleType VehicleType) (spotNumber int, err error) {
 	spots := parkingLot.vehicleTypeToTotalSpots[vehicleType]
 	if len(spots) == 0 {
-		err = ParkingLotError{Err: ErrNoParkingSpotsAvailable(vehicleType)}
+		err = ErrNoParkingSpotsAvailable(vehicleType)
 		return
 	}
 	var isVehicleParked bool
@@ -59,14 +51,14 @@ func (parkingLot *parkingLot) Park(vehicleType VehicleType) (spotNumber int, err
 	if isVehicleParked {
 		return
 	}
-	err = ParkingLotError{Err: ErrParkingLotFull}
+	err = ErrParkingLotFull
 	return
 }
 
 func (parkingLot *parkingLot) Unpark(spotNumber int) error {
 	occupiedSpot, ok := parkingLot.spotNumberToSpot[spotNumber]
 	if !ok {
-		return ParkingLotError{Err: ErrVehicleInSpotDoesNotExist}
+		return ErrVehicleInSpotDoesNotExist
 	}
 	spots := parkingLot.vehicleTypeToTotalSpots[occupiedSpot.typ]
 	for _, spot := range spots {

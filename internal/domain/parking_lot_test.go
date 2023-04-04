@@ -1,7 +1,6 @@
 package domain_test
 
 import (
-	"errors"
 	"parking-lot/internal/domain"
 	"testing"
 )
@@ -39,8 +38,7 @@ func TestParkingLot_Park_SpotUnavailableToPark(t *testing.T) {
 
 	spotNumber, err = pl.Park(domain.Motorcycle)
 
-	expectedInternalErr := domain.ErrParkingLotFull
-	expectedErr := domain.ParkingLotError{Err: expectedInternalErr}
+	expectedErr := domain.ErrParkingLotFull
 
 	expectedSpotNumber := 0
 
@@ -48,12 +46,8 @@ func TestParkingLot_Park_SpotUnavailableToPark(t *testing.T) {
 		t.Errorf("Expected: %d. Got: %d", expectedSpotNumber, spotNumber)
 	}
 
-	if !errors.As(err, &expectedErr) {
+	if expectedErr != err {
 		t.Errorf("Expected error: %v. Got error: %v", expectedErr, err)
-	}
-
-	if expectedInternalErr.Error() != err.Error() {
-		t.Errorf("Expected error: %v. Got error: %v", expectedInternalErr.Error(), err.Error())
 	}
 }
 
@@ -62,8 +56,7 @@ func TestParkingLot_Park_NoParkingSpotsAvailable(t *testing.T) {
 	vehicleType := domain.Motorcycle
 	spotNumber, err := pl.Park(vehicleType)
 
-	expectedInternalErr := domain.ErrNoParkingSpotsAvailable(vehicleType)
-	expectedErr := domain.ParkingLotError{Err: expectedInternalErr}
+	expectedErr := domain.ErrNoParkingSpotsAvailable(vehicleType)
 
 	expectedSpotNumber := 0
 
@@ -71,12 +64,8 @@ func TestParkingLot_Park_NoParkingSpotsAvailable(t *testing.T) {
 		t.Errorf("Expected: %d. Got: %d", expectedSpotNumber, spotNumber)
 	}
 
-	if !errors.As(err, &expectedErr) {
+	if expectedErr.Error() != err.Error() {
 		t.Errorf("Expected error: %v. Got error: %v", expectedErr, err)
-	}
-
-	if expectedInternalErr.Error() != err.Error() {
-		t.Errorf("Expected error: %v. Got error: %v", expectedInternalErr.Error(), err.Error())
 	}
 }
 
@@ -107,14 +96,9 @@ func TestParkingLot_Unpark_InvalidSpotNumber(t *testing.T) {
 	spotNumber := 1
 
 	err := pl.Unpark(spotNumber)
-	expectedInternalErr := domain.ErrVehicleInSpotDoesNotExist
-	expectedErr := domain.ParkingLotError{Err: expectedInternalErr}
+	expectedErr := domain.ErrVehicleInSpotDoesNotExist
 
-	if !errors.As(err, &expectedErr) {
+	if err.Error() != expectedErr.Error() {
 		t.Errorf("Expected error: %v. Got error: %v", expectedErr, err)
-	}
-
-	if err.Error() != expectedInternalErr.Error() {
-		t.Errorf("Expected error: %v. Got error: %v", expectedErr.Error(), err.Error())
 	}
 }
