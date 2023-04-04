@@ -13,14 +13,14 @@ type ParkingLot interface {
 }
 
 type parkingLot struct {
-	vehicleTypeToSpot map[VehicleType][]*Spot
-	spotNumberToSpot  map[int]Spot
+	vehicleTypeToTotalSpots map[VehicleType][]*Spot
+	spotNumberToSpot        map[int]Spot
 }
 
 func NewParkingLot() ParkingLot {
 	pl := &parkingLot{}
 	pl.spotNumberToSpot = make(map[int]Spot)
-	pl.vehicleTypeToSpot = make(map[VehicleType][]*Spot)
+	pl.vehicleTypeToTotalSpots = make(map[VehicleType][]*Spot)
 	return pl
 }
 
@@ -41,7 +41,7 @@ var (
 )
 
 func (parkingLot *parkingLot) Park(vehicleType VehicleType) (spotNumber int, err error) {
-	spots := parkingLot.vehicleTypeToSpot[vehicleType]
+	spots := parkingLot.vehicleTypeToTotalSpots[vehicleType]
 	if len(spots) == 0 {
 		err = ParkingLotError{Err: ErrNoParkingSpotsAvailable(vehicleType)}
 		return
@@ -68,7 +68,7 @@ func (parkingLot *parkingLot) Unpark(spotNumber int) error {
 	if !ok {
 		return ParkingLotError{Err: ErrVehicleInSpotDoesNotExist}
 	}
-	spots := parkingLot.vehicleTypeToSpot[occupiedSpot.typ]
+	spots := parkingLot.vehicleTypeToTotalSpots[occupiedSpot.typ]
 	for _, spot := range spots {
 		if spot.number == spotNumber {
 			spot.occupied = false
@@ -82,6 +82,6 @@ func (parkingLot *parkingLot) Unpark(spotNumber int) error {
 func (pl *parkingLot) AddSpots(typ VehicleType, size int) {
 	for i := 1; i <= size; i++ {
 		spot := NewSpot(i, typ)
-		pl.vehicleTypeToSpot[typ] = append(pl.vehicleTypeToSpot[typ], &spot)
+		pl.vehicleTypeToTotalSpots[typ] = append(pl.vehicleTypeToTotalSpots[typ], &spot)
 	}
 }
