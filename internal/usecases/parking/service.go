@@ -23,7 +23,8 @@ type Ticket struct {
 }
 
 type ParkingServiceErr struct {
-	Err error
+	Err                error
+	InternalParkingErr error
 }
 
 var (
@@ -34,6 +35,10 @@ var (
 
 func (ps ParkingServiceErr) Error() string {
 	return ps.Err.Error()
+}
+
+func (ps ParkingServiceErr) Unwrap() error {
+	return ps.InternalParkingErr
 }
 
 type VehicleType string
@@ -102,7 +107,7 @@ func (ps *parkingService) GetTicket(vehicleType VehicleType, entryDateTime time.
 	ticket := Ticket{}
 	spotNumber, err := ps.Park(domain.VehicleType(vehicleType))
 	if err != nil {
-		return ticket, ParkingServiceErr{Err: fmt.Errorf("%v: %w", ErrParking, err)}
+		return ticket, ParkingServiceErr{Err: fmt.Errorf("%v: %w", ErrParking, err), InternalParkingErr: err}
 	}
 	currentTicketNumber := ps.currentTicketNumber
 

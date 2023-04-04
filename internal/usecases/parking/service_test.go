@@ -43,7 +43,7 @@ func TestParkingService_GetTicket(t *testing.T) {
 func TestParkingService_GetTicket_ParkingError_NoParkingSpotsAvailable(t *testing.T) {
 	vehicleType := domain.CarOrSuv
 	expectedUsecaseErr := parking.ParkingServiceErr{Err: parking.ErrParking}
-	expectedDomainErr := domain.ParkingLotError{Err: domain.ErrNoParkingSpotsAvailable(vehicleType)}
+	expectedDomainErr := domain.ErrNoParkingSpotsAvailable(vehicleType)
 	mockParkingLot := &domain.ParkingLotMock{
 		ParkFunc: func(vehicleType domain.VehicleType) (int, error) {
 			return 0, expectedDomainErr
@@ -61,14 +61,16 @@ func TestParkingService_GetTicket_ParkingError_NoParkingSpotsAvailable(t *testin
 		t.Errorf("Expected: %v. Got: %v", expectedUsecaseErr, err)
 	}
 
-	if expectedUsecaseErr.Error() != err.Error() {
-		t.Errorf("Expected: %v. Got: %v", expectedUsecaseErr.Error(), err.Error())
+	actualDomainErr := errors.Unwrap(err)
+
+	if actualDomainErr != expectedDomainErr {
+		t.Errorf("Expected: %v. Got: %v", expectedDomainErr, actualDomainErr)
 	}
 }
 
 func TestParkingService_GetTicket_ParkingError_ParkingLotFull(t *testing.T) {
 	expectedUsecaseErr := parking.ParkingServiceErr{Err: parking.ErrParking}
-	expectedDomainErr := domain.ParkingLotError{Err: domain.ErrParkingLotFull}
+	expectedDomainErr := domain.ErrParkingLotFull
 	mockParkingLot := &domain.ParkingLotMock{
 		ParkFunc: func(vehicleType domain.VehicleType) (int, error) {
 			return 0, expectedDomainErr
